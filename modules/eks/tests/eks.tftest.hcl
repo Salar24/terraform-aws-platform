@@ -91,7 +91,7 @@ run "public_endpoint_limited_to_given_cidrs" {
   }
 
   assert {
-    condition     = aws_eks_cluster.this.vpc_config[0].endpoint_public_access && tolist(aws_eks_cluster.this.vpc_config[0].public_access_cidrs) == ["203.0.113.0/24"]
+    condition     = aws_eks_cluster.this.vpc_config[0].endpoint_public_access && toset(aws_eks_cluster.this.vpc_config[0].public_access_cidrs) == toset(["203.0.113.0/24"])
     error_message = "Public endpoint should be enabled only for the listed CIDRs."
   }
 }
