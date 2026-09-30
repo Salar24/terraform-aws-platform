@@ -23,6 +23,19 @@ data "aws_partition" "current" {}
 
 # --- State bucket ------------------------------------------------------------
 
+# Customer-managed key: every state read/write is attributable in CloudTrail,
+# and access to state can be revoked through the key policy alone.
+resource "aws_kms_key" "state" {
+  description             = "Terraform state encryption"
+  enable_key_rotation     = true
+  deletion_window_in_days = 30
+}
+
+resource "aws_kms_alias" "state" {
+  name          = "alias/terraform-state"
+  target_key_id = aws_kms_key.state.key_id
+}
+
 resource "aws_s3_bucket" "state" {
   bucket = var.state_bucket_name
 
@@ -42,7 +55,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
   bucket = aws_s3_bucket.state.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "aws:kms"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.state.arn
     }
     bucket_key_enabled = true
   }
@@ -149,6 +163,10 @@ data "aws_iam_policy_document" "plan_state" {
   statement {
     actions   = ["s3:PutObject", "s3:DeleteObject"]
     resources = ["${aws_s3_bucket.state.arn}/*.tflock"]
+  }
+  statement {
+    actions   = ["kms:Decrypt", "kms:GenerateDataKey"]
+    resources = [aws_kms_key.state.arn]
   }
 }
 
