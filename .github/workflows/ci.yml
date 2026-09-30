@@ -12,6 +12,12 @@ env:
   TF_VERSION: 1.16.4
   TF_IN_AUTOMATION: "true"
 
+# Explicit bash enables pipefail; the implicit default shell does not, so a
+# failure on the left of a pipe (e.g. `terraform test | tee`) would be ignored.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   fmt:
     name: Format

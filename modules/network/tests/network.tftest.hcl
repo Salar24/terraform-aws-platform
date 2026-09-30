@@ -11,6 +11,13 @@ mock_provider "aws" {
       json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}"
     }
   }
+  # The provider still validates ARN formats, so mocks need realistic values.
+  mock_resource "aws_cloudwatch_log_group" {
+    defaults = { arn = "arn:aws:logs:us-east-1:111111111111:log-group:/vpc/test/flow-logs" }
+  }
+  mock_resource "aws_iam_role" {
+    defaults = { arn = "arn:aws:iam::111111111111:role/test-vpc-flow-logs" }
+  }
 }
 
 variables {
